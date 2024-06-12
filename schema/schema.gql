@@ -1,20 +1,44 @@
 const { gql } = require('apollo-server-express');
 
 const typeDefs = gql`
-  type User {
-    id: ID!
-    email: String!
-    password: String!
-  }
+type Game {
+  id: ID!
+  title: String!
+  genre: String!
+  releaseDate: String!
+}
 
-  type Query {
-    getUser(userId: ID!): User!
-  }
+type Subscription {
+  newGameLaunched: Game
+  newSubscriptionNotification: Notification
+}
 
-  type Mutation {
-    signup(email: String!, password: String!): String
-    login(email: String!, password: String!): String
-  }
-`;
+type Notification {
+  id: ID!
+  userId: ID!
+  content: String!
+  seen: Boolean!
+}
+
+type Query {
+  getUser(userId: ID!): User!
+  getGames: [Game!]
+  getNotifications(userId: ID!): [Notification!]
+}
+
+type Mutation {
+  signup(email: String!, password: String!): String
+  login(email: String!, password: String!): String
+  launchGame(title: String!, genre: String!, releaseDate: String!): Game
+  subscribeToNotifications(userId: ID!, subscriptionType: String!): Boolean
+  markNotificationAsSeen(notificationId: ID!): Boolean
+}
+
+type User {
+  id: ID!
+  email: String!
+  password: String!
+  subscriptions: [String!]
+}`;
 
 module.exports = { typeDefs };
