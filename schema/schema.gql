@@ -20,18 +20,26 @@ type Notification {
   seen: Boolean!
 }
 
+type SubscriptionType {
+  id: ID!
+  name: String!
+  description: String
+  associatedGames: [Game]
+}
+
 type Query {
   getUser(userId: ID!): User!
   getGames: [Game!]
   getNotifications(userId: ID!): [Notification!]
-  getSubscriptionTypes: [String!]!
+  getSubscriptionTypes: [SubscriptionType!]
 }
 
 type Mutation {
   signup(email: String!, password: String!): String
   login(email: String!, password: String!): String
-  launchGame(title: String!, genre: String!, releaseDate: String!): Game
-  subscribeToNotifications(userId: ID!, subscriptionType: String!): Boolean
+  launchGame(title: String!, genre: String!, releaseDate: String!, subscriptionTypeIds: [ID!]!): Game
+  createSubscriptionType(name: String!, description: String, associatedGames: [ID!]): SubscriptionType
+  subscribeToNotifications(userId: ID!, subscriptionTypeId: ID!): Boolean
   markNotificationAsSeen(notificationId: ID!): Boolean
 }
 
@@ -40,6 +48,7 @@ type User {
   email: String!
   password: String!
   subscriptions: [String!]
-}`;
+}
+`;
 
 module.exports = { typeDefs };
