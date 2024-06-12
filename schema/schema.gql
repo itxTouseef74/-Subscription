@@ -24,6 +24,7 @@ type Query {
   getUser(userId: ID!): User!
   getGames: [Game!]
   getNotifications(userId: ID!): [Notification!]
+  getSubscriptionTypes: [String!]!
 }
 
 type Mutation {

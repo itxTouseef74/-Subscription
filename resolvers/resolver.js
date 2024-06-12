@@ -6,7 +6,7 @@ const Game = require('../models/game.js');
 const Notification = require('../models/notification');
 
 const pubsub = new PubSub();
-const NEW_GAME_LAUNCHED = 'NEW_GAME_LAUNCHED';
+const NEW_GAME_LAUNCHED = 'KINGRO_GAME';
 const NEW_SUBSCRIPTION_NOTIFICATION = 'NEW_SUBSCRIPTION_NOTIFICATION';
 
 const resolvers = {
@@ -38,7 +38,6 @@ const resolvers = {
         console.log('New user saved:', newUser);
 
         const token = jwt.sign({ userId: newUser.id }, process.env.JWT_SECRET, { expiresIn: '1d' });
-        console.log(process.env.JWT_SECRET)
         console.log('JWT token generated for user:', newUser.id);
         return token;
       } catch (error) {
@@ -71,42 +70,63 @@ const resolvers = {
       }
     },
     launchGame: async (_, { title, genre, releaseDate }) => {
-      const newGame = new Game({ title, genre, releaseDate });
-      await newGame.save();
-      pubsub.publish(NEW_GAME_LAUNCHED, { newGameLaunched: newGame });
+      try {
+        console.log(`Launching game with title: ${title}, genre: ${genre}, releaseDate: ${releaseDate}`);
+        
+        const newGame = new Game({ title, genre, releaseDate });
+        await newGame.save();
+        console.log('New game saved:', newGame);
+        pubsub.publish(NEW_GAME_LAUNCHED, { newGameLaunched: newGame });
 
-      // Notify subscribed users
-      const subscribedUsers = await User.find({ subscriptions: 'NEW_GAME_LAUNCHED' });
-      for (const user of subscribedUsers) {
-        const notification = new Notification({ userId: user.id, content: `New game launched: ${title}`, seen: false });
-        await notification.save();
-        pubsub.publish(NEW_SUBSCRIPTION_NOTIFICATION, { newSubscriptionNotification: notification });
+        // Notify subscribed users
+        const subscribedUsers = await User.find({ subscriptions: 'NEW_GAME_LAUNCHED' });
+        console.log('Subscribed users:', subscribedUsers);
+        
+        for (const user of subscribedUsers) {
+          const notification = new Notification({ userId: user._id, content: `New game launched: ${title}`, seen: false });
+          await notification.save();
+          console.log('Notification saved:', notification);
+          pubsub.publish(NEW_SUBSCRIPTION_NOTIFICATION, { newSubscriptionNotification: notification });
+        }
+
+        return newGame;
+      } catch (error) {
+        console.error('Error launching game:', error.message);
+        throw new Error('Error launching game: ' + error.message);
       }
-
-      return newGame;
     },
     subscribeToNotifications: async (_, { userId, subscriptionType }) => {
-      const user = await User.findById(userId);
-      if (!user) {
-        throw new Error('User not found');
-      }
+      try {
+        const user = await User.findById(userId);
+        if (!user) {
+          throw new Error('User not found');
+        }
 
-      if (!user.subscriptions.includes(subscriptionType)) {
-        user.subscriptions.push(subscriptionType);
-        await user.save();
+        if (!user.subscriptions.includes(subscriptionType)) {
+          user.subscriptions.push(subscriptionType);
+          await user.save();
+        }
+        
+        return true;
+      } catch (error) {
+        console.error('Error subscribing to notifications:', error.message);
+        throw new Error('Error subscribing to notifications: ' + error.message);
       }
-      
-      return true;
     },
     markNotificationAsSeen: async (_, { notificationId }) => {
-      const notification = await Notification.findById(notificationId);
-      if (!notification) {
-        throw new Error('Notification not found');
-      }
+      try {
+        const notification = await Notification.findById(notificationId);
+        if (!notification) {
+          throw new Error('Notification not found');
+        }
 
-      notification.seen = true;
-      await notification.save();
-      return true;
+        notification.seen = true;
+        await notification.save();
+        return true;
+      } catch (error) {
+        console.error('Error marking notification as seen:', error.message);
+        throw new Error('Error marking notification as seen: ' + error.message);
+      }
     }
   },
   Subscription: {
