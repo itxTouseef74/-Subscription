@@ -1,52 +1,56 @@
 <template>
-  <v-container fill-height justify="center" align="center">
-    <v-row justify="center" align="center">
-      <v-col class="text-h4"> Subscription APP </v-col>
-    </v-row>
-  </v-container>
-
-  <v-container  class="mt-5">
-    <v-row justify="center" align="center" >
-      <v-col md="6" justify="center" align="center" >
-        <v-card class="bg-green-accent-1">
-          <v-card-title class="text-h6">
-            <b>{{ isLogin ? "Login" : "Signup" }}</b>
-          </v-card-title>
-          <v-card-text>
-            <v-form @submit.prevent="isLogin ? login() : signup()">
-              <v-text-field v-model="username" label="Username" required></v-text-field>
-
+  <v-container>
+    <v-row align="center" justify="center">
+      <v-col cols="12" md="6">
+        <v-tabs v-model="tab">
+          <v-tab>Login</v-tab>
+          <v-tab>Sign Up</v-tab>
+        </v-tabs>
+        <v-tabs-items v-model="tab">
+          <v-tab-item>
+            <v-form v-model="loginValid" ref="loginForm">
               <v-text-field
-                v-if="!isLogin"
-                v-model="email"
+                v-model="login.email"
+                :rules="[rules.required, rules.email]"
                 label="Email"
                 required
               ></v-text-field>
               <v-text-field
-                v-model="password"
+                v-model="login.password"
+                :rules="[rules.required]"
                 label="Password"
                 type="password"
                 required
               ></v-text-field>
-
+              <v-btn color="primary" @click="submitLogin">Login</v-btn>
+            </v-form>
+          </v-tab-item>
+          <v-tab-item>
+            <v-form v-model="signupValid" ref="signupForm">
               <v-text-field
-                v-if="!isLogin"
-                v-model="confirm_password"
+                v-model="signup.email"
+                :rules="[rules.required, rules.email]"
+                label="Email"
+                required
+              ></v-text-field>
+              <v-text-field
+                v-model="signup.password"
+                :rules="[rules.required]"
+                label="Password"
+                type="password"
+                required
+              ></v-text-field>
+              <v-text-field
+                v-model="signup.confirmPassword"
+                :rules="[rules.required, passwordMatch]"
                 label="Confirm Password"
                 type="password"
                 required
               ></v-text-field>
-
-              <v-btn type="submit" color="primary" class="mr-1">{{
-                isLogin ? "Login" : "Signup"
-              }}</v-btn>
-
-              <v-btn @click="toggleMode" color="secondary" >
-                {{ isLogin ? "Switch to Signup" : "Switch to Login" }}
-              </v-btn>
+              <v-btn color="primary" @click="submitSignup">Sign Up</v-btn>
             </v-form>
-          </v-card-text>
-        </v-card>
+          </v-tab-item>
+        </v-tabs-items>
       </v-col>
     </v-row>
   </v-container>
@@ -54,96 +58,48 @@
 
 <script>
 export default {
-  name: "Auth",
   data() {
     return {
-      isLogin: true,
-      username: "",
-      email: "",
-      password: "",
-      confirm_password: "",
+      tab: 0,
+      login: {
+        email: '',
+        password: ''
+      },
+      signup: {
+        email: '',
+        password: '',
+        confirmPassword: ''
+      },
+      loginValid: false,
+      signupValid: false,
+      rules: {
+        required: value => !!value || 'Required.',
+        email: value => /.+@.+\..+/.test(value) || 'E-mail must be valid.',
+      },
     };
   },
   methods: {
-    
-    login() {
-    
-      console.log("Login");
-      console.log(this.username);
-      console.log(this.password);
-      if (!this.username || !this.password) {
-      console.error("Please enter both username and password.");
-      return}
-      
-      const requestOptions = {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username: this.username, password: this.password }),
-      };
-
-      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/token/`, requestOptions)
-        .then((response) => response.json())
-        .then((data) => {
-          console.log(data.access);
-          localStorage.setItem("token", data.access);
-
-          this.$router.push("/");
-        })
-        .catch((error) => { 
-          console.error("Error:", error);
-        });
+    passwordMatch(value) {
+      return value === this.signup.password || 'Passwords must match.';
     },
-    signup() {
-      console.log("Signup");
-      console.log(this.username);
-      console.log(this.email);
-      console.log(this.password);
-      console.log(this.confirm_password);
-
-      if (this.password !== this.confirm_password) {
-        console.error("Passwords do not match.");
-        return;
+    submitLogin() {
+      if (this.$refs.loginForm.validate()) {
+        // Handle login logic here
+        alert('Login successful');
       }
-
-      const requestOptions = {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username: this.username,
-          email: this.email,
-          password: this.password,
-          confirm_password: this.confirm_password,
-        }),
-      };
-
-      fetch(`${import.meta.env.VITE_API_BASE_URL}/api/signup/`, requestOptions)
-        .then((response) => response.json())
-        .then((data) => {
-          console.log("Signup successful:", data);
-          this.isLogin = true;
-        })
-        .catch((error) => {
-          console.error("Error:", error);
-        });
-        
     },
-    toggleMode() {
-      this.isLogin = !this.isLogin;
-      this.username = "";
-      this.email = "";
-      this.password = "";
-      this.confirm_password = "";
+    submitSignup() {
+      if (this.$refs.signupForm.validate()) {
+        // Handle signup logic here
+        alert('Signup successful');
+      }
     },
   },
 };
 </script>
 
-<style >
-body{
-  background-color: rgb(239, 243, 246);
+<style scoped>
+.v-container {
+  margin-top: 50px;
 }
 </style>
