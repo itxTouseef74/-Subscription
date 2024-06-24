@@ -3,7 +3,7 @@
       <v-form @submit.prevent="login">
         <v-text-field label="Email" v-model="email" required></v-text-field>
         <v-text-field label="Password" type="password" v-model="password" required></v-text-field>
-        <v-btn type="submit">Login</v-btn>
+        <v-btn type="submit" color="primary">Login</v-btn>
       </v-form>
     </v-container>
   </template>
@@ -13,7 +13,7 @@
   import { useMutation, provideApolloClient } from '@vue/apollo-composable';
   import { apolloClient } from '../apollo';
   import { gql } from '@apollo/client/core';
-  import { useRouter } from 'vue-router'; // Import useRouter from Vue Router
+  import { useRouter } from 'vue-router'; 
   
   const LOGIN_MUTATION = gql`
     mutation Login($email: String!, $password: String!) {
@@ -26,7 +26,7 @@
     setup() {
       provideApolloClient(apolloClient);
   
-      const router = useRouter(); // Get router instance
+      const router = useRouter(); 
   
       const email = ref('');
       const password = ref('');
