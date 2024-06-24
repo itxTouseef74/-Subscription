@@ -2,7 +2,7 @@
 const mongoose = require('mongoose');
 require('dotenv').config();
 
-const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/graphql';
+const uri = process.env.MONGODB_URI || 'mongodb://localhost:27017/subscription';
 
 const connectDB = async () => {
   try {

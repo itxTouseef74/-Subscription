@@ -4,7 +4,9 @@ const User = require('../models/users');
 const Game = require('../models/game.js');
 const Notification = require('../models/notification');
 const SubscriptionType = require('../models/subscriptionType');
-const { pubsub, publisherClient } = require('../database/redis.js');
+const { PubSub } = require('graphql-subscriptions');
+
+const pubsub = new PubSub();
 const NEW_GAME_LAUNCHED = 'NEW_GAME_LAUNCHED';
 const NEW_SUBSCRIPTION_NOTIFICATION = 'NEW_SUBSCRIPTION_NOTIFICATION';
 
@@ -14,37 +16,13 @@ const resolvers = {
       return await User.findById(userId);
     },
     getGames: async () => {
-      const gamesKey = 'games';
-      let games = await publisherClient.get(gamesKey);
-      if (!games) {
-        games = await Game.find();
-        await publisherClient.set(gamesKey, JSON.stringify(games), 'EX', 3600);
-      } else {
-        games = JSON.parse(games);
-      }
-      return games;
+      return await Game.find();
     },
     getNotifications: async (_, { userId }) => {
-      const notificationsKey = `notifications:${userId}`;
-      let notifications = await publisherClient.get(notificationsKey);
-      if (!notifications) {
-        notifications = await Notification.find({ userId });
-        await publisherClient.set(notificationsKey, JSON.stringify(notifications), 'EX', 1800);
-      } else {
-        notifications = JSON.parse(notifications);
-      }
-      return notifications;
+      return await Notification.find({ userId });
     },
     getSubscriptionTypes: async () => {
-      const subscriptionTypesKey = 'subscriptionTypes';
-      let subscriptionTypes = await publisherClient.get(subscriptionTypesKey);
-      if (!subscriptionTypes) {
-        subscriptionTypes = await SubscriptionType.find();
-        await publisherClient.set(subscriptionTypesKey, JSON.stringify(subscriptionTypes), 'EX', 3600);
-      } else {
-        subscriptionTypes = JSON.parse(subscriptionTypes);
-      }
-      return subscriptionTypes;
+      return await SubscriptionType.find();
     },
   },
   Mutation: {
@@ -96,8 +74,8 @@ const resolvers = {
     launchGame: async (_, { title, genre, releaseDate, subscriptionTypeIds }) => {
       const newGame = new Game({ title, genre, releaseDate });
       await newGame.save();
-      console.log('Publishing new game launch to Redis:', { newGameLaunched: newGame });
-      pubsub.publish(NEW_GAME_LAUNCHED, { newGameLaunched: newGame }).then(() => console.log('Published NEW_GAME_LAUNCHED event to Redis'))
+      console.log('Publishing new game launch:', { newGameLaunched: newGame });
+      pubsub.publish(NEW_GAME_LAUNCHED, { newGameLaunched: newGame }).then(() => console.log('Published NEW_GAME_LAUNCHED event'))
         .catch(err => console.log('Failed to publish NEW_GAME_LAUNCHED event'));
       const subscribedUsers = await User.find({ subscriptions: { $in: subscriptionTypeIds } });
       for (const user of subscribedUsers) {
@@ -107,18 +85,16 @@ const resolvers = {
           seen: false
         });
         await notification.save();
-        console.log('Publishing new subscription notification to Redis:', { newSubscriptionNotification: notification });
+        console.log('Publishing new subscription notification:', { newSubscriptionNotification: notification });
         pubsub.publish(NEW_SUBSCRIPTION_NOTIFICATION, { newSubscriptionNotification: notification })
           .catch(err => console.error('Failed to publish new subscription notification:', err));
         console.log('Notification object before publishing:', notification);
       }
-      await publisherClient.del('games');
       return newGame;
     },
     createSubscriptionType: async (_, { name, description, associatedGames }) => {
       const newSubscriptionType = new SubscriptionType({ name, description, associatedGames });
       await newSubscriptionType.save();
-      await publisherClient.del('subscriptionTypes');
       return newSubscriptionType;
     },
     subscribeToNotifications: async (_, { userId, subscriptionTypeId }) => {
@@ -128,7 +104,6 @@ const resolvers = {
       }
       user.subscriptions.push(subscriptionTypeId);
       await user.save();
-      await publisherClient.del(`notifications:${userId}`);
       return true;
     },
     markNotificationAsSeen: async (_, { notificationId }) => {
@@ -138,8 +113,6 @@ const resolvers = {
       }
       notification.seen = true;
       await notification.save();
-      const userId = notification.userId.toString();
-      await publisherClient.del(`notifications:${userId}`);
       return true;
     },
   },

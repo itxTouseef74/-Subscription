@@ -1,32 +1,17 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-
-</script>
-
 <template>
-
-  <header>
-
-    
-      <nav>
-       
-      </nav>
-  
-  </header> 
-
-  <RouterView />
+  <v-app>
+    <v-main>
+      <router-view />
+    </v-main>
+  </v-app>
 </template>
 
 <script>
 export default {
-}
+  name: 'App',
+};
 </script>
 
-
-
-
-
-
-<style scoped>
+<style>
 
 </style>
