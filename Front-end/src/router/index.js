@@ -5,7 +5,7 @@ import Login from '../components/Login.vue';
 import Signup from '../components/Signup.vue';
 import Games from '../components/Games.vue';
 import Notifications from '../components/Notifications.vue';
-
+import Subscription from '../components/Subscription.vue';
 const routes = [
   {
     path: '/',
@@ -14,7 +14,8 @@ const routes = [
       { path: '', name: 'home', component: Home },
       { path: '/login', name: 'login', component: Login },
       { path: '/signup', name: 'signup', component: Signup },
-      { path: '/games', name: 'games', component: Games },
+      { path: '/games', name: 'Games', component: Games },
+      { path: '/subscription', name: 'subscribe', component: Subscription },
       { path: '/notifications', name: 'notifications', component: Notifications },
     ],
   },

@@ -7,7 +7,8 @@
         <v-btn text to="/">Home</v-btn>
         <v-btn text to="/login">Login</v-btn>
         <v-btn text to="/signup">Signup</v-btn>
-        <v-btn text to="/games">Channels</v-btn>
+        <!-- <v-btn text to="/games">Games</v-btn> -->
+        <v-btn text to="/subscription">Subscription</v-btn>
         <v-btn text to="/notifications">Notifications</v-btn>
       </v-app-bar>
   
