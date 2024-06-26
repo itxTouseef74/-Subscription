@@ -57,4 +57,3 @@ export const apolloClient = new ApolloClient({
 export const apolloProvider = createApolloProvider({
   defaultClient: apolloClient,
 });
-export default apolloProvider;  

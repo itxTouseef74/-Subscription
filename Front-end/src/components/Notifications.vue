@@ -49,7 +49,7 @@ export default defineComponent({
 
     onMounted(() => {
       store.dispatch('fetchNotifications', userId);
-      store.dispatch('initSubscription'); // Initialize subscription for real-time updates
+      store.dispatch('initSubscription'); 
     });
 
     const showNotifications = () => {
@@ -72,5 +72,5 @@ export default defineComponent({
 </script>
 
 <style scoped>
-/* Add your component scoped styles here */
+
 </style>

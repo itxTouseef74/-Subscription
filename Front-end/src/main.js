@@ -2,7 +2,7 @@ import { createApp } from 'vue';
 import App from './App.vue';
 import router from './router';
 import vuetify from './plugins/vuetify';
-import apolloProvider from './apollo';
+import {apolloProvider} from './apollo';
 import store from './store/index.js';
 
 
